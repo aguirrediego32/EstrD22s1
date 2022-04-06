@@ -109,9 +109,11 @@ and _ _ = False
 {-d) Dados dos booleanos si alguno de ellos es True devuelve True, sino devuelve False.
 En Haskell ya está definida como ||.-}
 or :: Bool -> Bool -> Bool
-or True False = True
-or False True = True
-or _ _ = False
+or False False = False
+or _ _ = True
+
+
+
 
 -- REGISTROS
 
@@ -149,9 +151,9 @@ laQueEsMayor p1 p2 = if (esMayorQueLaOtra p1 p2)
                         then p1
                         else p2
 --Pokemon
-data TipoDePokemon = Fuego |Agua |Planta 
+data TipoDePokemon = Fuego |Agua |Planta   
 type Energia = Int
-data Pokemon = Poke TipoDePokemon Energia 
+data Pokemon = Poke TipoDePokemon Energia   
 data Entrenador = E Nombre Pokemon Pokemon 
 
 bulbasaur = Poke Planta 20
@@ -159,13 +161,13 @@ squirtle = Poke Agua 19
 vulpix = Poke Fuego 15
 blastoise = Poke Agua 25
 
-ash = E "Ash" bulbasaur squirtle
+ash = E "Ash" bulbasaur bulbasaur
 brock = E "Brock" blastoise vulpix
 
 {-Dados dos Pokémon indica si el primero, en base al tipo, es superior al segundo. Agua
 supera a fuego, fuego a planta y planta a agua. Y cualquier otro caso es falso.-}
 superaA :: Pokemon -> Pokemon -> Bool
-superaA p1 p2 = leGana (esDeTipo p1) (esDeTipo p2)
+superaA p1 p2 = leGana (obtenerTipo p1) (obtenerTipo p2)
 
 --Dado dos tipo de pokemon determina si el primero vence al segundo
 leGana :: TipoDePokemon -> TipoDePokemon -> Bool
@@ -175,20 +177,21 @@ leGana Agua Fuego = True
 leGana _ _ = False 
 
 -- Dado un pokemon denota el tipo
-esDeTipo :: Pokemon -> TipoDePokemon
-esDeTipo (Poke t e) = t
+obtenerTipo :: Pokemon -> TipoDePokemon
+obtenerTipo (Poke t e) = t
 
 --Devuelve la cantidad de Pokémon de determinado tipo que posee el entrenador.
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
-cantidadDePokemonDe t (E n p1 p2) = cantMismo t p1 p2 
+cantidadDePokemonDe t (E n p1 p2) = (unoOCero t p1) + (unoOCero t p2)
 
---Dado un TipoDePokemon y 2 Pokemon determina la cantidad de Pokemon del tipo dado
-cantMismo :: TipoDePokemon -> Pokemon -> Pokemon -> Int
-cantMismo t p1 p2 = unoOCero t (esDeTipo(p1)) + unoOCero t (esDeTipo(p2))
+--Dado un TipoDePokemon y 1 Pokemon determina si es del mismo Tipo de Pokemon
 
--- Dado 2 TipoDePokemon devuelve 0, 1 o 2
-unoOCero :: TipoDePokemon -> TipoDePokemon -> Int
-unoOCero t1 t2 = if (sonIguales t1 t2) then 1 else 0
+esDelMismoTipo :: TipoDePokemon -> Pokemon -> Bool
+esDelMismoTipo t p = sonIguales t (obtenerTipo p)
+
+-- Dado 1 TipoDePokemon y 1 Pokemon  devuelve 0 o 1 si son iguales
+unoOCero :: TipoDePokemon ->Pokemon -> Int
+unoOCero t p = if (esDelMismoTipo t p) then 1 else 0
 
 --Dado 2 TipoDePokemon determna si son iguales
 sonIguales :: TipoDePokemon -> TipoDePokemon -> Bool
@@ -199,7 +202,10 @@ sonIguales _ _              = False
 
 --Dado un par de entrenadores, devuelve a sus Pokémon en una lista.
 juntarPokemon :: (Entrenador, Entrenador) -> [Pokemon]
-juntarPokemon ((E n p1 p2),(E n2 p3 p4)) = [p1,p2,p3,p4] 
+juntarPokemon (e1,e2) = pokemones e1 ++ pokemones e2
+
+pokemones :: Entrenador -> [Pokemon]
+pokemones (E n p1 p2) = [p1, p2]
 
 --Funciones polimórficas
 --a)Dado un elemento de algún tipo devuelve ese mismo elemento.
