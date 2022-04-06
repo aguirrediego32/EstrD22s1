@@ -125,8 +125,7 @@ sinLosPrimeros n (x:xs) = sinLosPrimeros (n- 1) xs
 --Registros
 type Nombre     = String
 type Edad       = Int
-data Persona    = P Nombre Edad  deriving Show
-yo = P "Diego" 35
+data Persona    = P Nombre Edad  
 jorge = P "Jorge" 17
 maria = P "Maria" 20
 lista1 = [yo,jorge,maria]
