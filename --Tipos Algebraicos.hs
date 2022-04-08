@@ -182,16 +182,18 @@ obtenerTipo (Poke t e) = t
 
 --Devuelve la cantidad de Pokémon de determinado tipo que posee el entrenador.
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
-cantidadDePokemonDe t (E n p1 p2) = (unoOCero t p1) + (unoOCero t p2)
+cantidadDePokemonDe t (E n p1 p2) = cantidadDeTipo t p1 p2
+
+cantidadDeTipo :: TipoDePokemon -> Pokemon -> Pokemon -> Int
+cantidadDeTipo t p1 p2 = unoOCero(esDelMismoTipo t p1) + unoOCero(esDelMismoTipo t p2)
 
 --Dado un TipoDePokemon y 1 Pokemon determina si es del mismo Tipo de Pokemon
-
 esDelMismoTipo :: TipoDePokemon -> Pokemon -> Bool
 esDelMismoTipo t p = sonIguales t (obtenerTipo p)
 
--- Dado 1 TipoDePokemon y 1 Pokemon  devuelve 0 o 1 si son iguales
-unoOCero :: TipoDePokemon ->Pokemon -> Int
-unoOCero t p = if (esDelMismoTipo t p) then 1 else 0
+unoOCero :: Bool -> Int
+unoOCero  True = 1
+unoOCero False = 0
 
 --Dado 2 TipoDePokemon determna si son iguales
 sonIguales :: TipoDePokemon -> TipoDePokemon -> Bool
