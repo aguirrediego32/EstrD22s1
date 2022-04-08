@@ -103,13 +103,13 @@ implica _ _ = True
 {-c) Dados dos booleanos si ambos son True devuelve True, sino devuelve False.
 En Haskell ya está definida como \&\&-}
 and :: Bool -> Bool -> Bool
-and True True = True 
-and _ _ = False 
+and True b = b 
+and _ _ = False
 
 {-d) Dados dos booleanos si alguno de ellos es True devuelve True, sino devuelve False.
 En Haskell ya está definida como ||.-}
 or :: Bool -> Bool -> Bool
-or False False = False
+or False b = b
 or _ _ = True
 
 
