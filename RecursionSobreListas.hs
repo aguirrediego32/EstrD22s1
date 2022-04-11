@@ -173,9 +173,9 @@ elMayor p1 p2  = if esMayorQueLaOtra p1 p2
 esMayorQueLaOtra :: Persona -> Persona -> Bool
 esMayorQueLaOtra p1 p2 = (edad p1) > (edad p2)
 
-data TipoDePokemon = Agua | Fuego | Planta          deriving Show    
-data Pokemon = ConsPokemon TipoDePokemon Int        deriving Show      
-data Entrenador = ConsEntrenador String [Pokemon]    deriving Show
+data TipoDePokemon = Agua | Fuego | Planta               
+data Pokemon = ConsPokemon TipoDePokemon Int               
+data Entrenador = ConsEntrenador String [Pokemon]     
 
 bulbasaur = ConsPokemon Planta 20
 squirtle = ConsPokemon Agua 19
@@ -263,10 +263,10 @@ perteneceTipo t1 (t:ts)  = sonIguales t1 (obtenerTipo t) ||  perteneceTipo t1 ts
 
 --Proyectos
 
-data Seniority = Junior | SemiSenior | Senior                           deriving Show
-data Proyecto = ConsProyecto String                                     deriving Show
-data Rol = Developer Seniority Proyecto | Management Seniority Proyecto deriving Show
-data Empresa = ConsEmpresa [Rol]                                        deriving Show
+data Seniority = Junior | SemiSenior | Senior                            
+data Proyecto = ConsProyecto String                                      
+data Rol = Developer Seniority Proyecto | Management Seniority Proyecto  
+data Empresa = ConsEmpresa [Rol]                                         
 
 
 proyecto1 = ConsProyecto "Tecnologia"
