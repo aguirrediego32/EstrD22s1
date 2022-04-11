@@ -57,8 +57,8 @@ lasDeLongitudMayorA n (xs:xss)  = if n < (longitud xs)
 
 --11. Dados una lista y un elemento, devuelve una lista con ese elemento agregado al final de la lista.
 agregarAlFinal :: [a] -> a -> [a]
-agregarAlFinal [] e     = [e]
-agregarAlFinal xs e     =  xs ++ [e]
+agregarAlFinal [] e     = e : [] 
+agregarAlFinal (x:xs) e    = x : agregarAlFinal xs e 
 
 --12. Dadas dos listas devuelve la lista con todos los elementos de la primera lista y todos los
 --elementos de la segunda a continuación. Definida en Haskell como ++
@@ -71,14 +71,14 @@ concatenar (x:xs) ys    = x : concatenar xs ys
 --en Haskell como reverse
 reversa :: [a] -> [a]
 reversa []      = []
-reversa (x:xs)  = reversa xs ++ [x]
+reversa (x:xs)  = agregarAlFinal (reversa xs) x 
 
 {-14. Dadas dos listas de enteros, devuelve una lista donde el elemento en la posición n es el
 máximo entre el elemento n de la primera lista y de la segunda lista, teniendo en cuenta que
 las listas no necesariamente tienen la misma longitud.-}
 zipMaximos :: [Int] -> [Int] -> [Int]
-zipMaximos [] ys            = ys
 zipMaximos xs []            = xs
+zipMaximos [] ys            = ys
 zipMaximos (x:xs) (y:ys)    = if x > y 
                                 then x : zipMaximos xs ys
                                 else y : zipMaximos xs ys   
@@ -125,10 +125,11 @@ sinLosPrimeros n (x:xs) = sinLosPrimeros (n- 1) xs
 --Registros
 type Nombre     = String
 type Edad       = Int
-data Persona    = P Nombre Edad  
-jorge = P "Jorge" 17
-maria = P "Maria" 20
-lista1 = [yo,jorge,maria]
+data Persona    = P Nombre Edad  deriving Show
+yo = P "Diego" 35
+jorge   = P "Jorge" 17
+maria   = P "Maria" 20
+lista1  = [yo,jorge,maria]
 
 --Dados una edad y una lista de personas devuelve a las personas mayores a esa edad.
 mayoresA :: Int -> [Persona] -> [Persona]
@@ -152,14 +153,15 @@ edad (P _ e) = e
 
 --Dada una lista de Persona devuelvo la suma de todas al edades
 edadTotal :: [Persona] -> Int
-edadTotal [] = 0
-edadTotal (p:ps) = edad p + edadTotal ps    
+edadTotal []        = 0
+edadTotal (p:ps)    = edad p + edadTotal ps    
 
 --Dada una lista de personas devuelve la persona más vieja de la lista. Precondición: la
 --lista al menos posee una persona.
 elMasViejo :: [Persona] -> Persona
+elMasViejo []       = error "No existe la persona mas vieja en lista vacia"
 elMasViejo (p : []) = p
-elMasViejo (p:ps) =  elMayor p (elMasViejo ps)
+elMasViejo (p:ps)   =  elMayor p (elMasViejo ps)
 
 --Dada dos personas devuelve la que es mayor
 elMayor :: Persona -> Persona -> Persona
@@ -171,7 +173,221 @@ elMayor p1 p2  = if esMayorQueLaOtra p1 p2
 esMayorQueLaOtra :: Persona -> Persona -> Bool
 esMayorQueLaOtra p1 p2 = (edad p1) > (edad p2)
 
-data TipoDePokemon = Agua | Fuego | Planta
-data Pokemon = ConsPokemon TipoDePokemon Int
-data Entrenador = ConsEntrenador String [Pokemon]
-  
+data TipoDePokemon = Agua | Fuego | Planta          deriving Show    
+data Pokemon = ConsPokemon TipoDePokemon Int        deriving Show      
+data Entrenador = ConsEntrenador String [Pokemon]    deriving Show
+
+bulbasaur = ConsPokemon Planta 20
+squirtle = ConsPokemon Agua 19
+vulpix = ConsPokemon Fuego 15
+
+ash = ConsEntrenador "Ash" [bulbasaur, squirtle, vulpix, vulpix,vulpix]
+brock = ConsEntrenador "Brock" [bulbasaur, vulpix]
+
+--Devuelve la cantidad de Pokémon que posee el entrenador. 
+cantPokemon :: Entrenador -> Int
+cantPokemon (ConsEntrenador _ pks) = longitud pks
+
+-- Dado un pokemon denota el tipo
+obtenerTipo :: Pokemon -> TipoDePokemon
+obtenerTipo (ConsPokemon t e) = t
+--Dado un TipoDePokemon y 1 Pokemon determina si es del mismo Tipo de Pokemon
+esDelMismoTipo :: TipoDePokemon -> Pokemon -> Bool
+esDelMismoTipo t p = sonIguales t (obtenerTipo p)
+
+
+--Dado 2 TipoDePokemon determna si son iguales
+sonIguales :: TipoDePokemon -> TipoDePokemon -> Bool
+sonIguales Planta Planta    = True
+sonIguales Fuego Fuego      = True
+sonIguales Agua Agua        = True
+sonIguales _ _              = False
+
+--Devuelve la cantidad de Pokémon de determinado tipo que posee el entrenador.
+cantPokemonDe :: TipoDePokemon -> Entrenador -> Int
+cantPokemonDe t (ConsEntrenador _ pks) = cantTotal t pks
+
+cantTotal:: TipoDePokemon -> [Pokemon]-> Int
+cantTotal t [] = 0
+cantTotal t (pk:pks) = if esDelMismoTipo t pk     
+                            then 1 + cantTotal t pks
+                            else cantTotal t pks
+
+
+--Dados dos entrenadores, indica la cantidad de Pokemon de cierto tipo, que le ganarían
+--a los Pokemon del segundo entrenador.
+losQueLeGanan :: TipoDePokemon -> Entrenador -> Entrenador -> Int
+losQueLeGanan t  (ConsEntrenador _ pk1)(ConsEntrenador _ pk2) = totalGanador t pk1 pk2
+
+totalGanador:: TipoDePokemon -> [Pokemon] -> [Pokemon] -> Int
+totalGanador t ps1 ps2 = if (leGanaATodos t ps2)
+                            then aparicionesDeTipo t ps1
+                            else 0 
+
+
+
+aparicionesDeTipo :: TipoDePokemon -> [Pokemon] -> Int
+aparicionesDeTipo t []        = 0
+aparicionesDeTipo t (pk:pks)    = if sonIguales t (obtenerTipo pk) 
+                            then 1 + aparicionesDeTipo t pks
+                            else aparicionesDeTipo t pks    
+
+--Dado un TipoDePokemon y una lista de Pokemon determina si el tipo dado vence a todos los pokemon de la lista
+-- en función de los tipos
+leGanaATodos:: TipoDePokemon ->[Pokemon] ->Bool
+leGanaATodos t [] = True
+leGanaATodos t (p:ps) = superaA t p && (leGanaATodos t ps)     
+
+
+
+--Dado dos tipo de pokemon determina si el primero vence al segundo
+leGana :: TipoDePokemon -> TipoDePokemon -> Bool
+leGana Fuego Planta = True
+leGana Planta Agua = True
+leGana Agua Fuego = True
+leGana _ _ = False 
+
+superaA :: TipoDePokemon -> Pokemon -> Bool
+superaA t p2 = leGana t (obtenerTipo p2)
+
+--Dado un entrenador, devuelve True si posee al menos un Pokémon de cada tipo posible
+esMaestroPokemon :: Entrenador -> Bool
+esMaestroPokemon (ConsEntrenador _ pks) = todosLosTipos pks
+
+todosLosTipos :: [Pokemon] -> Bool
+todosLosTipos pk = perteneceTipo Planta pk && perteneceTipo Fuego pk && perteneceTipo Agua pk
+
+perteneceTipo :: TipoDePokemon -> [Pokemon] -> Bool
+perteneceTipo t1 []      = False
+perteneceTipo t1 (t:ts)  = sonIguales t1 (obtenerTipo t) ||  perteneceTipo t1 ts
+
+--Proyectos
+
+data Seniority = Junior | SemiSenior | Senior                           deriving Show
+data Proyecto = ConsProyecto String                                     deriving Show
+data Rol = Developer Seniority Proyecto | Management Seniority Proyecto deriving Show
+data Empresa = ConsEmpresa [Rol]                                        deriving Show
+
+
+proyecto1 = ConsProyecto "Tecnologia"
+proyecto2 = ConsProyecto "Economia"
+proyecto3 = ConsProyecto "Banco Galicia"
+proyecto4 = ConsProyecto "Escuela"
+
+listaProyectos = [proyecto2, proyecto2, proyecto2, proyecto4, proyecto3,proyecto4]
+listaProyectos2 = [proyecto2, proyecto2, proyecto2, proyecto4, proyecto3,proyecto1]
+listaRol = [(Developer Junior proyecto1),(Management Junior proyecto2),(Management Junior proyecto1),(Developer Senior proyecto1)]
+
+listaRol2 = [(Developer Senior proyecto2),(Management Junior proyecto2),(Management Junior proyecto1),(Developer SemiSenior proyecto3)]
+
+listaRol3 = [(Developer Senior proyecto2), (Management Junior proyecto2), (Developer Senior proyecto1),(Management Junior proyecto1),(Developer SemiSenior proyecto3),(Developer Senior proyecto4)]
+rolSeniorM = (Management Senior proyecto2)
+rolSeniorD = (Developer Senior proyecto1)
+rolJuniorD = (Developer Junior proyecto1)
+rolJuniorM = (Management Junior proyecto1)
+
+empresa2 = ConsEmpresa [Management Senior proyecto3,Developer Senior proyecto3,Developer Senior proyecto2, Developer Senior proyecto1, Developer SemiSenior proyecto1]
+
+empresa1 = ConsEmpresa [Developer Senior proyecto1, Management Senior proyecto1, Developer SemiSenior proyecto3,Developer Junior proyecto3,Management Senior proyecto3]
+
+--Dada una empresa denota la lista de proyectos en los que trabaja, sin elementos repetidos.
+proyectos :: Empresa -> [Proyecto]
+proyectos empresa =  proyectosUnicos(totalProyectos(rolesEmpresa(empresa)))
+
+--Dado una empresa devuelve la lista de Rol que tiene
+rolesEmpresa :: Empresa -> [Rol]
+rolesEmpresa (ConsEmpresa roles) = roles
+
+--Dado un Rol devuelve el proyect que tiene
+proyecto :: Rol -> Proyecto
+proyecto (Developer _ pr) = pr
+proyecto (Management _ pr) = pr
+
+--Dado un proyecto devuelve su nombre
+nombreProyecto :: Proyecto -> String
+nombreProyecto (ConsProyecto n) = n
+
+--Dado una lista de Rol devuelve una lista con todos los proyectos 
+totalProyectos :: [Rol] -> [Proyecto]
+totalProyectos [] = []
+totalProyectos (r:rs) = proyecto r : totalProyectos rs
+
+nombresDeProyectos :: [Proyecto] -> [String]
+nombresDeProyectos [] = []
+nombresDeProyectos (p:ps) =  nombreProyecto p : nombresDeProyectos ps
+
+--Dada una lista de proyectos devuelve una lista de proyectos sin repetidos
+proyectosUnicos :: [Proyecto] -> [Proyecto]
+proyectosUnicos []      = []
+proyectosUnicos (p:ps)  = if not(pertenece (nombreProyecto p) (nombresDeProyectos ps ) ) 
+                            then p : proyectosUnicos ps
+                            else proyectosUnicos ps
+
+--Dado un Seniority devuelve True si es Senior false en caso contrario
+esSenior :: Seniority -> Bool
+esSenior Senior = True
+esSenior _ = False
+
+--Dado un rol determina si es desarrollador y si es senior
+esDesarrolladorSenior :: Rol -> Bool
+esDesarrolladorSenior (Developer senrt _) = esSenior senrt
+esDesarrolladorSenior (Management senrt _) = False
+
+
+--Dado una lista de Rol devuelve una lista de Rol solo con los Desarrolladores Senior
+soloDevSenior :: [Rol] -> [Rol]
+soloDevSenior [] = []
+soloDevSenior (r:rs) = if esDesarrolladorSenior r
+                        then r : soloDevSenior rs
+                        else soloDevSenior rs
+
+-- Dado una lista de nombres y una lista de Rol filtra los roles que pertenecen a la lista de nombres,
+--es decir si el desarrollador trabaja en la lista de nombres ( los roles pasados por parametro ya contienen desarrolladores unicamente)
+empleadosQuePertenecen :: [String] -> [Rol] -> [Rol]
+empleadosQuePertenecen nombres [] = []
+empleadosQuePertenecen [] rol = []
+empleadosQuePertenecen nombres (r:rs) = if pertenece (nombreProyecto(proyecto r)) nombres
+                                                then r : empleadosQuePertenecen nombres rs
+                                                else empleadosQuePertenecen nombres rs
+
+--Dado una lista de Proyecto y una lista de Rol devuelve una lista de Rol con los desarrolladores que estan incluidos en la lista de proyectos
+desarrolladoresIncluidosEnProyecto :: [Proyecto] -> [Rol] -> [Rol]
+desarrolladoresIncluidosEnProyecto ps  rol = empleadosQuePertenecen (nombresDeProyectos ps) rol  
+
+
+cantidadTotal :: [Rol] -> Int
+cantidadTotal rs = longitud rs      
+
+--Dada una empresa indica la cantidad de desarrolladores senior que posee, que pertenecen
+--además a los proyectos dados por parámetro
+losDevSenior :: Empresa -> [Proyecto] -> Int
+losDevSenior emp proyectos = cantidadTotal (desarrolladoresIncluidosEnProyecto proyectos (soloDevSenior(rolesEmpresa emp)))
+
+--Indica la cantidad de empleados que trabajan en alguno de los proyectos dados
+cantQueTrabajanEn :: [Proyecto] -> Empresa -> Int
+cantQueTrabajanEn pr emp    = cantidadTotal (desarrolladoresIncluidosEnProyecto pr (rolesEmpresa emp)) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
