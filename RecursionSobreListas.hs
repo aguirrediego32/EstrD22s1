@@ -64,7 +64,6 @@ agregarAlFinal (x:xs) e    = x : agregarAlFinal xs e
 --elementos de la segunda a continuación. Definida en Haskell como ++
 concatenar :: [a] -> [a] -> [a]
 concatenar [] ys        = ys
-concatenar xs []        = xs
 concatenar (x:xs) ys    = x : concatenar xs ys
 
 --13. Dada una lista devuelve la lista con los mismos elementos de atrás para adelante. Definida
@@ -99,8 +98,9 @@ factorial n = n * factorial (n - 1)
 --2. Dado un número n devuelve una lista cuyos elementos sean los números comprendidos entre
 --n y 1 (incluidos). Si el número es inferior a 1, devuelve la lista vacía
 cuentaRegresiva :: Int -> [Int]
-cuentaRegresiva 0 = []
-cuentaRegresiva n = n : cuentaRegresiva (n - 1)    
+cuentaRegresiva n = if (n < 1)
+                        then []
+                        else n : cuentaRegresiva (n - 1)    
 
 --3. Dado un número n y un elemento e devuelve una lista en la que el elemento e repite n veces
 repetir :: Int -> a -> [a]
@@ -125,7 +125,7 @@ sinLosPrimeros n (x:xs) = sinLosPrimeros (n- 1) xs
 --Registros
 type Nombre     = String
 type Edad       = Int
-data Persona    = P Nombre Edad  deriving Show
+data Persona    = P Nombre Edad  
 yo = P "Diego" 35
 jorge   = P "Jorge" 17
 maria   = P "Maria" 20
@@ -181,8 +181,8 @@ bulbasaur = ConsPokemon Planta 20
 squirtle = ConsPokemon Agua 19
 vulpix = ConsPokemon Fuego 15
 
-ash = ConsEntrenador "Ash" [bulbasaur, squirtle, vulpix, vulpix,vulpix]
-brock = ConsEntrenador "Brock" [bulbasaur, vulpix]
+ash = ConsEntrenador "Ash" [bulbasaur,squirtle, squirtle, vulpix, vulpix,vulpix]
+brock = ConsEntrenador "Brock" [vulpix, vulpix]
 
 --Devuelve la cantidad de Pokémon que posee el entrenador. 
 cantPokemon :: Entrenador -> Int
@@ -220,23 +220,17 @@ losQueLeGanan :: TipoDePokemon -> Entrenador -> Entrenador -> Int
 losQueLeGanan t  (ConsEntrenador _ pk1)(ConsEntrenador _ pk2) = totalGanador t pk1 pk2
 
 totalGanador:: TipoDePokemon -> [Pokemon] -> [Pokemon] -> Int
-totalGanador t ps1 ps2 = if (leGanaATodos t ps2)
-                            then aparicionesDeTipo t ps1
-                            else 0 
+totalGanador t [] ps2 = 0
+totalGanador t (p:ps) ps2 = if esDelMismoTipo t p && leGanaATodos p ps2
+                            then 1 + totalGanador t ps ps2
+                            else totalGanador t ps ps2
 
-
-
-aparicionesDeTipo :: TipoDePokemon -> [Pokemon] -> Int
-aparicionesDeTipo t []        = 0
-aparicionesDeTipo t (pk:pks)    = if sonIguales t (obtenerTipo pk) 
-                            then 1 + aparicionesDeTipo t pks
-                            else aparicionesDeTipo t pks    
 
 --Dado un TipoDePokemon y una lista de Pokemon determina si el tipo dado vence a todos los pokemon de la lista
 -- en función de los tipos
-leGanaATodos:: TipoDePokemon ->[Pokemon] ->Bool
-leGanaATodos t [] = True
-leGanaATodos t (p:ps) = superaA t p && (leGanaATodos t ps)     
+leGanaATodos:: Pokemon ->[Pokemon] ->Bool
+leGanaATodos p [] = True
+leGanaATodos p (pk:pks) = superaA p pk  && (leGanaATodos p pks)     
 
 
 
@@ -247,8 +241,8 @@ leGana Planta Agua = True
 leGana Agua Fuego = True
 leGana _ _ = False 
 
-superaA :: TipoDePokemon -> Pokemon -> Bool
-superaA t p2 = leGana t (obtenerTipo p2)
+superaA :: Pokemon -> Pokemon -> Bool
+superaA p1 p2 = leGana (obtenerTipo p1) (obtenerTipo p2)
 
 --Dado un entrenador, devuelve True si posee al menos un Pokémon de cada tipo posible
 esMaestroPokemon :: Entrenador -> Bool
@@ -292,7 +286,7 @@ empresa1 = ConsEmpresa [Developer Senior proyecto1, Management Senior proyecto1,
 
 --Dada una empresa denota la lista de proyectos en los que trabaja, sin elementos repetidos.
 proyectos :: Empresa -> [Proyecto]
-proyectos empresa =  proyectosUnicos(totalProyectos(rolesEmpresa(empresa)))
+proyectos empresa =  proyectosUnicos(listaDeProyectos(rolesEmpresa(empresa)))
 
 --Dado una empresa devuelve la lista de Rol que tiene
 rolesEmpresa :: Empresa -> [Rol]
@@ -308,9 +302,9 @@ nombreProyecto :: Proyecto -> String
 nombreProyecto (ConsProyecto n) = n
 
 --Dado una lista de Rol devuelve una lista con todos los proyectos 
-totalProyectos :: [Rol] -> [Proyecto]
-totalProyectos [] = []
-totalProyectos (r:rs) = proyecto r : totalProyectos rs
+listaDeProyectos :: [Rol] -> [Proyecto]
+listaDeProyectos [] = []
+listaDeProyectos (r:rs) = proyecto r : listaDeProyectos rs
 
 nombresDeProyectos :: [Proyecto] -> [String]
 nombresDeProyectos [] = []
@@ -345,7 +339,6 @@ soloDevSenior (r:rs) = if esDesarrolladorSenior r
 --es decir si el desarrollador trabaja en la lista de nombres ( los roles pasados por parametro ya contienen desarrolladores unicamente)
 empleadosQuePertenecen :: [String] -> [Rol] -> [Rol]
 empleadosQuePertenecen nombres [] = []
-empleadosQuePertenecen [] rol = []
 empleadosQuePertenecen nombres (r:rs) = if pertenece (nombreProyecto(proyecto r)) nombres
                                                 then r : empleadosQuePertenecen nombres rs
                                                 else empleadosQuePertenecen nombres rs
@@ -353,19 +346,15 @@ empleadosQuePertenecen nombres (r:rs) = if pertenece (nombreProyecto(proyecto r)
 --Dado una lista de Proyecto y una lista de Rol devuelve una lista de Rol con los desarrolladores que estan incluidos en la lista de proyectos
 desarrolladoresIncluidosEnProyecto :: [Proyecto] -> [Rol] -> [Rol]
 desarrolladoresIncluidosEnProyecto ps  rol = empleadosQuePertenecen (nombresDeProyectos ps) rol  
-
-
-cantidadTotal :: [Rol] -> Int
-cantidadTotal rs = longitud rs      
-
+  
 --Dada una empresa indica la cantidad de desarrolladores senior que posee, que pertenecen
 --además a los proyectos dados por parámetro
 losDevSenior :: Empresa -> [Proyecto] -> Int
-losDevSenior emp proyectos = cantidadTotal (desarrolladoresIncluidosEnProyecto proyectos (soloDevSenior(rolesEmpresa emp)))
+losDevSenior emp proyectos = longitud (desarrolladoresIncluidosEnProyecto proyectos (soloDevSenior(rolesEmpresa emp)))
 
 --Indica la cantidad de empleados que trabajan en alguno de los proyectos dados
 cantQueTrabajanEn :: [Proyecto] -> Empresa -> Int
-cantQueTrabajanEn pr emp    = cantidadTotal (desarrolladoresIncluidosEnProyecto pr (rolesEmpresa emp)) 
+cantQueTrabajanEn pr emp    = longitud (desarrolladoresIncluidosEnProyecto pr (rolesEmpresa emp)) 
 
 
 
