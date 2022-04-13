@@ -257,10 +257,10 @@ perteneceTipo t1 (t:ts)  = sonIguales t1 (obtenerTipo t) ||  perteneceTipo t1 ts
 
 --Proyectos
 
-data Seniority = Junior | SemiSenior | Senior                            
-data Proyecto = ConsProyecto String                                      
-data Rol = Developer Seniority Proyecto | Management Seniority Proyecto  
-data Empresa = ConsEmpresa [Rol]                                         
+data Seniority = Junior | SemiSenior | Senior                                  
+data Proyecto = ConsProyecto String                                         
+data Rol = Developer Seniority Proyecto | Management Seniority Proyecto     
+data Empresa = ConsEmpresa [Rol]                                            
 
 
 proyecto1 = ConsProyecto "Tecnologia"
@@ -292,7 +292,7 @@ proyectos empresa =  proyectosUnicos(listaDeProyectos(rolesEmpresa(empresa)))
 rolesEmpresa :: Empresa -> [Rol]
 rolesEmpresa (ConsEmpresa roles) = roles
 
---Dado un Rol devuelve el proyect que tiene
+--Dado un Rol devuelve el proyecto que tiene
 proyecto :: Rol -> Proyecto
 proyecto (Developer _ pr) = pr
 proyecto (Management _ pr) = pr
@@ -356,9 +356,30 @@ losDevSenior emp proyectos = longitud (desarrolladoresIncluidosEnProyecto proyec
 cantQueTrabajanEn :: [Proyecto] -> Empresa -> Int
 cantQueTrabajanEn pr emp    = longitud (desarrolladoresIncluidosEnProyecto pr (rolesEmpresa emp)) 
 
+--Dada un rol(empleado) y un proyecto devuelve True si esta en el mismo proyecto
+trabajaEnElProyecto :: Proyecto -> Rol -> Bool
+trabajaEnElProyecto unPr (Developer _ pr)   = (nombreProyecto unPr) == (nombreProyecto pr)
+trabajaEnElProyecto unPr (Management _ pr)  = (nombreProyecto unPr) == (nombreProyecto pr)
 
+--Dado una lista de Rol (empleados) y un proyecto devuelve la cantidad de empleados que estan en ese proyecto
+empleadosPorProyecto :: [Rol] -> Proyecto -> Int
+empleadosPorProyecto [] pr      = 0
+empleadosPorProyecto (p:ps) pr  = if trabajaEnElProyecto pr p
+                                    then 1 + empleadosPorProyecto ps pr
+                                    else empleadosPorProyecto ps pr
 
+--Dado una lista de Rol y un Proyecto devuelvo un par con el proyecto y la cantidad de personas involucradas
+parProyectoEmpleados :: [Rol] -> Proyecto -> (Proyecto, Int)
+parProyectoEmpleados roles pr = (pr, (empleadosPorProyecto roles pr))
 
+--Dado una lista de Rol y una lista de Proyecto devuevlo una lista de par con el proyecto y la cantidad de personas involucradas
+asigAProyecto:: [Rol] -> [Proyecto] -> [(Proyecto, Int)]
+asigAProyecto roles []      = []
+asigAProyecto roles (p:ps)  = parProyectoEmpleados roles p : asigAProyecto roles ps
+
+--Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con sucantidad de personas involucradas.
+asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]
+asignadosPorProyecto unaEmpresa = asigAProyecto (roles unaEmpresa) (proyectos unaEmpresa) 
 
 
 
