@@ -258,9 +258,9 @@ perteneceTipo t1 (t:ts)  = sonIguales t1 (obtenerTipo t) ||  perteneceTipo t1 ts
 --Proyectos
 
 data Seniority = Junior | SemiSenior | Senior                                  
-data Proyecto = ConsProyecto String                                         
-data Rol = Developer Seniority Proyecto | Management Seniority Proyecto     
-data Empresa = ConsEmpresa [Rol]                                            
+data Proyecto = ConsProyecto String                                            
+data Rol = Developer Seniority Proyecto | Management Seniority Proyecto        
+data Empresa = ConsEmpresa [Rol]                                             
 
 
 proyecto1 = ConsProyecto "Tecnologia"
@@ -282,7 +282,7 @@ rolJuniorM = (Management Junior proyecto1)
 
 empresa2 = ConsEmpresa [Management Senior proyecto3,Developer Senior proyecto3,Developer Senior proyecto2, Developer Senior proyecto1, Developer SemiSenior proyecto1]
 
-empresa1 = ConsEmpresa [Developer Senior proyecto1, Management Senior proyecto1, Developer SemiSenior proyecto3,Developer Junior proyecto3,Management Senior proyecto3]
+empresa1 = ConsEmpresa [Developer Senior proyecto1, Management Senior proyecto1, Developer SemiSenior proyecto3,Developer Junior proyecto3,Management Senior proyecto3, Management Senior proyecto1]
 
 --Dada una empresa denota la lista de proyectos en los que trabaja, sin elementos repetidos.
 proyectos :: Empresa -> [Proyecto]
@@ -313,9 +313,13 @@ nombresDeProyectos (p:ps) =  nombreProyecto p : nombresDeProyectos ps
 --Dada una lista de proyectos devuelve una lista de proyectos sin repetidos
 proyectosUnicos :: [Proyecto] -> [Proyecto]
 proyectosUnicos []      = []
-proyectosUnicos (p:ps)  = if not(pertenece (nombreProyecto p) (nombresDeProyectos ps ) ) 
-                            then p : proyectosUnicos ps
-                            else proyectosUnicos ps
+proyectosUnicos (p:ps)  = incluirSiNoEsta p (proyectosUnicos ps) 
+
+
+incluirSiNoEsta:: Proyecto -> [Proyecto] -> [Proyecto]
+incluirSiNoEsta x ys = if pertenece (nombreProyecto x) (nombresDeProyectos ys)
+                then ys
+                else x: ys
 
 --Dado un Seniority devuelve True si es Senior false en caso contrario
 esSenior :: Seniority -> Bool
@@ -379,7 +383,7 @@ asigAProyecto roles (p:ps)  = parProyectoEmpleados roles p : asigAProyecto roles
 
 --Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con sucantidad de personas involucradas.
 asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]
-asignadosPorProyecto unaEmpresa = asigAProyecto (roles unaEmpresa) (proyectos unaEmpresa) 
+asignadosPorProyecto unaEmpresa = asigAProyecto (rolesEmpresa unaEmpresa) (proyectos unaEmpresa) 
 
 
 
