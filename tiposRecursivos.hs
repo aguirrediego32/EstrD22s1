@@ -1,5 +1,5 @@
-data Color = Azul | Rojo                        deriving Show
-data Celda = Bolita Color Celda | CeldaVacia    deriving Show
+data Color = Azul | Rojo                        
+data Celda = Bolita Color Celda | CeldaVacia    
 
 --Celda ejemplo
 celda2Azul2Rojo = Bolita Rojo (Bolita Azul (Bolita Rojo (Bolita Azul CeldaVacia)))
@@ -115,7 +115,7 @@ cantTesorosEn n (Nada resto) = (cantTesorosEn (n-1) resto)
 
 --2.1. Árboles binario
 
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) 
 
 arbol1:: Tree Int
 arbol1 = NodeT 10
