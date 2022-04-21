@@ -312,7 +312,7 @@ nombresDeProyectos (p:ps) =  nombreProyecto p : nombresDeProyectos ps
 
 --Dada una lista de proyectos devuelve una lista de proyectos sin repetidos
 proyectosUnicos :: [Proyecto] -> [Proyecto]
-proyectosUnicos []      = []
+--proyectosUnicos []      = []
 proyectosUnicos (p:ps)  = incluirSiNoEsta p (proyectosUnicos ps) 
 
 
@@ -365,32 +365,32 @@ trabajaEnElProyecto :: Proyecto -> Rol -> Bool
 trabajaEnElProyecto unPr (Developer _ pr)   = (nombreProyecto unPr) == (nombreProyecto pr)
 trabajaEnElProyecto unPr (Management _ pr)  = (nombreProyecto unPr) == (nombreProyecto pr)
 
---Dado una lista de Rol (empleados) y un proyecto devuelve la cantidad de empleados que estan en ese proyecto
-empleadosPorProyecto :: [Rol] -> Proyecto -> Int
-empleadosPorProyecto [] pr      = 0
-empleadosPorProyecto (p:ps) pr  = if trabajaEnElProyecto pr p
-                                    then 1 + empleadosPorProyecto ps pr
-                                    else empleadosPorProyecto ps pr
 
---Dado una lista de Rol y un Proyecto devuelvo un par con el proyecto y la cantidad de personas involucradas
-parProyectoEmpleados :: [Rol] -> Proyecto -> (Proyecto, Int)
-parProyectoEmpleados roles pr = (pr, (empleadosPorProyecto roles pr))
-
---Dado una lista de Rol y una lista de Proyecto devuevlo una lista de par con el proyecto y la cantidad de personas involucradas
-asigAProyecto:: [Rol] -> [Proyecto] -> [(Proyecto, Int)]
-asigAProyecto roles []      = []
-asigAProyecto roles (p:ps)  = parProyectoEmpleados roles p : asigAProyecto roles ps
-
---Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con sucantidad de personas involucradas.
+--Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su cantidad de personas involucradas.
 asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]
-asignadosPorProyecto unaEmpresa = asigAProyecto (rolesEmpresa unaEmpresa) (proyectos unaEmpresa) 
+asignadosPorProyecto (ConsEmpresa rs) = asignadosPorProyectoAux rs 
 
 
+asignadosPorProyectoAux :: [Rol] -> [(Proyecto, Int)]
+asignadosPorProyectoAux []     = []
+asignadosPorProyectoAux (r:rs) = if perteneceProyecto (proyecto r)   (asignadosPorProyectoAux rs )
+                                   then sumarUnoAProyecto (proyecto r) (asignadosPorProyectoAux rs) 
+                                   else (proyecto r, 1) : asignadosPorProyectoAux rs   
+
+-- Dado un Proyecto y una lista de pares Proyecto Int suma 1 al par del proyecto dado
+--Precondicion: la lista no esta vacia, esta función se usa dentro de perteneceProyecto.
+sumarUnoAProyecto :: Proyecto -> [(Proyecto, Int)] -> [(Proyecto, Int)]
+sumarUnoAProyecto p (x:xs) = if esMismoProyecto p (fst x)
+                               then (p, snd x + 1) : xs
+                               else x : sumarUnoAProyecto p xs
 
 
+perteneceProyecto :: Proyecto -> [(Proyecto, Int)] -> Bool
+perteneceProyecto p []     = False
+perteneceProyecto p (x:xs) = esMismoProyecto p  (fst x)  || perteneceProyecto p xs
 
-
-
+esMismoProyecto:: Proyecto -> Proyecto -> Bool
+esMismoProyecto p1 p2 = nombreProyecto p1 == nombreProyecto p2
 
 
 
