@@ -1,5 +1,5 @@
-data Color = Azul | Rojo                        
-data Celda = Bolita Color Celda | CeldaVacia    
+data Color = Azul | Rojo                         
+data Celda = Bolita Color Celda | CeldaVacia     
 
 --Celda ejemplo
 celda2Azul2Rojo = Bolita Rojo (Bolita Azul (Bolita Rojo (Bolita Azul CeldaVacia)))
@@ -24,7 +24,7 @@ unoSi False = 0
 --Dado un color y una celda, agrega una bolita de dicho color a la celda.
 poner :: Color -> Celda -> Celda
 poner unCol CeldaVacia          = Bolita unCol CeldaVacia
-poner unCol (Bolita col cel)    = Bolita unCol (poner col cel)    
+poner unCol (Bolita col cel)    = Bolita unCol (Bolita col cel)    
 
 
 --Dado un color y una celda saca una bolita del color dado, si no hubiese nada en la celda queda una celda vacia
@@ -40,8 +40,8 @@ ponerN :: Int -> Color -> Celda -> Celda
 ponerN 0 unColor celda      = celda
 ponerN n unColor unaCelda   = poner unColor (ponerN (n - 1) unColor unaCelda)
 
-data Objeto = Cacharro | Tesoro                             
-data Camino = Fin | Cofre [Objeto] Camino | Nada Camino     
+data Objeto = Cacharro | Tesoro                              
+data Camino = Fin | Cofre [Objeto] Camino | Nada Camino      
 
 
 camino1 = (Cofre [Cacharro, Cacharro])(Nada (Nada Fin))
@@ -51,7 +51,7 @@ camino4 = (Cofre [Cacharro, Cacharro] (Cofre [Tesoro](Nada (Nada (Cofre [Cacharr
 camino5 = (Cofre [Cacharro, Tesoro])(Nada (Nada Fin))
 hayTesoro :: Camino -> Bool
 hayTesoro Fin               = False
-hayTesoro (Nada cam )       = False  || hayTesoro cam
+hayTesoro (Nada cam )       = hayTesoro cam
 hayTesoro (Cofre elems c)   = contieneTesoro elems || hayTesoro c        
 
 esTesoro:: Objeto -> Bool
@@ -69,13 +69,16 @@ pasosHastaTesoro (Cofre elem cam)   = if (contieneTesoro elem)
                                         then 0
                                         else 1 + pasosHastaTesoro cam      
 
-hayTesoroEn:: Int -> Camino -> Bool
+hayTesoroEn :: Int -> Camino -> Bool
+hayTesoroEn 0 cam               = existeTesoro cam
 hayTesoroEn n Fin               = False
-hayTesoroEn 0 (Nada cam)        = False
 hayTesoroEn n (Nada cam)        = hayTesoroEn (n - 1) cam
-hayTesoroEn n (Cofre elem cam)  = if (n > 0) 
-                                        then hayTesoroEn (n - 1) cam 
-                                        else contieneTesoro elem
+hayTesoroEn n (Cofre elem cam)  = hayTesoroEn (n - 1) cam
+
+existeTesoro :: Camino -> Bool
+existeTesoro Fin              = False
+existeTesoro (Nada cam)       = False 
+existeTesoro (Cofre elem cam) = contieneTesoro elem
 
 cantTesorosPorCofre:: [Objeto] -> Int
 cantTesorosPorCofre []       = 0
@@ -83,15 +86,12 @@ cantTesorosPorCofre (x:xs)   = if(esTesoro x)
                                 then 1 + cantTesorosPorCofre xs
                                 else cantTesorosPorCofre xs
 
-cantTesorosTotal:: Camino -> Int
-cantTesorosTotal Fin                 = 0
-cantTesorosTotal (Nada cam)          = cantTesorosTotal cam
-cantTesorosTotal (Cofre elem cam)    = (cantTesorosPorCofre elem) + cantTesorosTotal cam
 
 --Indica si hay al menos “n” tesoros en el camino.
 alMenosNTesoros :: Int -> Camino -> Bool
-alMenosNTesoros n unCamino = n <= (cantTesorosTotal unCamino)
-
+alMenosNTesoros n Fin              = False
+alMenosNTesoros n (Nada cam)       = alMenosNTesoros n cam
+alMenosNTesoros n (Cofre elem cam) =  (cantTesorosPorCofre elem) >= n  || alMenosNTesoros ( n - (cantTesorosPorCofre elem)) cam
 --Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si
 --el rango es 3 y 5, indica la cantidad de tesoros que hay entre hacer 3 pasos y hacer 5. Están
 --incluidos tanto 3 como 5 en el resultado
@@ -285,9 +285,15 @@ listPerLevel (NodeT x ti td) = [x] : (zipListas (listPerLevel ti) (listPerLevel 
 --Devuelve los elementos de la rama más larga del árbol
 ramaMasLarga :: Tree a -> [a]
 ramaMasLarga EmptyT          = []
-ramaMasLarga (NodeT x ti td) = if heightT ti > heightT td 
-                                    then x : ramaMasLarga ti
-                                    else x : ramaMasLarga td
+ramaMasLarga (NodeT x ti td) =  x : listaMasLarga(ramaMasLarga ti) (ramaMasLarga td)
+
+listaMasLarga:: [a] -> [a] -> [a]
+listaMasLarga xs ys = if longitud xs > longitud ys then xs else ys
+
+longitud :: [a] -> Int
+longitud []     = 0
+longitud (x:xs) = 1 + longitud xs  
+
 --Dado un árbol devuelve todos los caminos, es decir, los caminos desde la raiz hasta las hojas
 todosLosCaminos :: Tree a -> [[a]]
 todosLosCaminos EmptyT = []
@@ -301,16 +307,37 @@ caminoA x []= []
 caminoA x (xs:xss) = (x : xs) : (caminoA x xss)             
 
 
+data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA 
+
+--Dada una expresión aritmética devuelve el resultado evaluarla.
+eval :: ExpA -> Int
+eval (Valor n)    = n
+eval (Sum e1 e2)  = eval e1 + eval e2
+eval (Prod e1 e2) = eval e1 * eval e2
+eval (Neg e)      = -(eval e)
+
+simplificar :: ExpA -> ExpA
+simplificar (Valor n)    = Valor n
+simplificar (Sum e1 e2)  = simplificarSum (simplificar e1) (simplificar e2)
+simplificar (Prod e1 e2) = simplificarProd (simplificar e1) (simplificar e2)
+simplificar (Neg e)      = simplificarNeg (simplificar e)
 
 
+simplificarSum :: ExpA -> ExpA -> ExpA
+simplificarSum (Valor 0) (Valor n) = Valor n
+simplificarSum (Valor n) (Valor 0) = Valor n
+simplificarSum e1 e2               = Sum e1 e2
 
+simplificarProd :: ExpA -> ExpA -> ExpA
+simplificarProd (Valor 0) (Valor n) = Valor 0
+simplificarProd (Valor n) (Valor 0) = Valor 0
+simplificarProd (Valor 1) (Valor n) = Valor n
+simplificarProd (Valor n) (Valor 1) = Valor n
+simplificarProd e1 e2               = Prod e1 e2
 
-
-
-
-
-
-
+simplificarNeg :: ExpA -> ExpA
+simplificarNeg (Neg (Neg x)) = x
+simplificarNeg  e            = e
 
 
 
