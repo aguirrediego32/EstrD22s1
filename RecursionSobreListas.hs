@@ -257,7 +257,7 @@ perteneceTipo t1 (t:ts)  = sonIguales t1 (obtenerTipo t) ||  perteneceTipo t1 ts
 
 --Proyectos
 
-data Seniority = Junior | SemiSenior | Senior                                  
+data Seniority = Junior | SemiSenior | Senior                                         
 data Proyecto = ConsProyecto String                                            
 data Rol = Developer Seniority Proyecto | Management Seniority Proyecto        
 data Empresa = ConsEmpresa [Rol]                                             
@@ -373,28 +373,19 @@ asignadosPorProyecto (ConsEmpresa rs) = asignadosPorProyectoAux rs
 
 asignadosPorProyectoAux :: [Rol] -> [(Proyecto, Int)]
 asignadosPorProyectoAux []     = []
-asignadosPorProyectoAux (r:rs) = if perteneceProyecto (proyecto r)   (asignadosPorProyectoAux rs )
-                                   then sumarUnoAProyecto (proyecto r) (asignadosPorProyectoAux rs) 
-                                   else (proyecto r, 1) : asignadosPorProyectoAux rs   
+asignadosPorProyectoAux (r:rs) = sumarUnoOAgregarProyecto (proyecto r) (asignadosPorProyectoAux rs)
+    
 
--- Dado un Proyecto y una lista de pares Proyecto Int suma 1 al par del proyecto dado
---Precondicion: la lista no esta vacia, esta función se usa dentro de perteneceProyecto.
-sumarUnoAProyecto :: Proyecto -> [(Proyecto, Int)] -> [(Proyecto, Int)]
-sumarUnoAProyecto p (x:xs) = if esMismoProyecto p (fst x)
-                               then (p, snd x + 1) : xs
-                               else x : sumarUnoAProyecto p xs
-
-
-perteneceProyecto :: Proyecto -> [(Proyecto, Int)] -> Bool
-perteneceProyecto p []     = False
-perteneceProyecto p (x:xs) = esMismoProyecto p  (fst x)  || perteneceProyecto p xs
 
 esMismoProyecto:: Proyecto -> Proyecto -> Bool
 esMismoProyecto p1 p2 = nombreProyecto p1 == nombreProyecto p2
 
 
-
-
+sumarUnoOAgregarProyecto :: Proyecto -> [(Proyecto,Int)] -> [(Proyecto,Int)]
+sumarUnoOAgregarProyecto p []          = (p,1) : []
+sumarUnoOAgregarProyecto p ((p',n):yns) = if (esMismoProyecto p p' )
+                         then (p',n+1) : yns
+                         else (p',n)   : sumarUnoOAgregarProyecto p yns
 
 
 
