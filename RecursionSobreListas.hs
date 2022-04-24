@@ -383,9 +383,9 @@ esMismoProyecto p1 p2 = nombreProyecto p1 == nombreProyecto p2
 
 sumarUnoOAgregarProyecto :: Proyecto -> [(Proyecto,Int)] -> [(Proyecto,Int)]
 sumarUnoOAgregarProyecto p []          = (p,1) : []
-sumarUnoOAgregarProyecto p ((p',n):yns) = if (esMismoProyecto p p' )
-                         then (p',n+1) : yns
-                         else (p',n)   : sumarUnoOAgregarProyecto p yns
+sumarUnoOAgregarProyecto p ((p',n):paresProyecto) = if (esMismoProyecto p p' )
+                         then (p',n+1) : paresProyecto
+                         else (p',n)   : sumarUnoOAgregarProyecto p paresProyecto
 
 
 
