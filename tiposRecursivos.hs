@@ -1,4 +1,4 @@
-data Color = Azul | Rojo                         
+data Color = Azul | Rojo                          
 data Celda = Bolita Color Celda | CeldaVacia     
 
 --Celda ejemplo
@@ -23,8 +23,7 @@ unoSi False = 0
 
 --Dado un color y una celda, agrega una bolita de dicho color a la celda.
 poner :: Color -> Celda -> Celda
-poner unCol CeldaVacia          = Bolita unCol CeldaVacia
-poner unCol (Bolita col cel)    = Bolita unCol (Bolita col cel)    
+poner c unaCelda = Bolita c (unaCelda)   
 
 
 --Dado un color y una celda saca una bolita del color dado, si no hubiese nada en la celda queda una celda vacia
@@ -97,25 +96,26 @@ alMenosNTesoros n (Cofre elem cam) =  (cantTesorosPorCofre elem) >= n  || alMeno
 --incluidos tanto 3 como 5 en el resultado
 cantTesorosEntre :: Int -> Int -> Camino -> Int
 cantTesorosEntre 0 hastaPasos camino =
-    cantTesorosEn hastaPasos camino
+    tesorosEntre hastaPasos camino
 cantTesorosEntre caminarPasos hastaPasos (Cofre _ resto) =
     cantTesorosEntre (caminarPasos -1) (hastaPasos -1) resto 
 cantTesorosEntre caminarPasos hastaPasos (Nada resto) =
     cantTesorosEntre (caminarPasos -1) (hastaPasos - 1) resto 
 
-cantTesorosEn :: Int -> Camino -> Int
-cantTesorosEn 0 Fin = 0
-cantTesorosEn 0 (Cofre objetos resto) = cantTesorosPorCofre objetos
-cantTesorosEn 0 (Nada resto) = 0
-cantTesorosEn n (Cofre objetos resto) = cantTesorosPorCofre objetos +
-     (cantTesorosEn (n-1) resto)
-cantTesorosEn n (Nada resto) = (cantTesorosEn (n-1) resto)
+tesorosEntre :: Int -> Camino -> Int
+tesorosEntre 0 cam = tesorosEn cam
+tesorosEntre n (Cofre objetos resto) = cantTesorosPorCofre objetos +
+     (tesorosEntre (n-1) resto)
+tesorosEntre n (Nada resto) = (tesorosEntre (n-1) resto)
 
-
+tesorosEn :: Camino -> Int
+tesorosEn  Fin = 0
+tesorosEn  (Cofre objetos resto) = cantTesorosPorCofre objetos
+tesorosEn  (Nada resto) = 0
 
 --2.1. Árboles binario
 
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a) 
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a)  
 
 arbol1:: Tree Int
 arbol1 = NodeT 10
@@ -137,6 +137,9 @@ arbol1 = NodeT 10
                         EmptyT)
                 )
             )
+
+arbolFidel :: Tree Int
+arbolFidel = NodeT 1 (NodeT 2 EmptyT EmptyT) (NodeT 3 EmptyT EmptyT)
 
 arbol2 :: Tree Int
 arbol2 = NodeT 51
@@ -303,12 +306,11 @@ todosLosCaminos (NodeT x ti td) =  (caminoA x (todosLosCaminos ti  ++  todosLosC
 
 
 caminoA :: a -> [[a]] -> [[a]]
-caminoA x []= []
+caminoA x []= [[x]]
 caminoA x (xs:xss) = (x : xs) : (caminoA x xss)             
 
 
-data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA 
-
+data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA  
 --Dada una expresión aritmética devuelve el resultado evaluarla.
 eval :: ExpA -> Int
 eval (Valor n)    = n
@@ -324,15 +326,15 @@ simplificar (Neg e)      = simplificarNeg (simplificar e)
 
 
 simplificarSum :: ExpA -> ExpA -> ExpA
-simplificarSum (Valor 0) (Valor n) = Valor n
-simplificarSum (Valor n) (Valor 0) = Valor n
-simplificarSum e1 e2               = Sum e1 e2
+simplificarSum (Valor 0) e   = e
+simplificarSum e (Valor 0)   = e
+simplificarSum e1 e2         = Sum e1 e2
 
 simplificarProd :: ExpA -> ExpA -> ExpA
-simplificarProd (Valor 0) (Valor n) = Valor 0
-simplificarProd (Valor n) (Valor 0) = Valor 0
-simplificarProd (Valor 1) (Valor n) = Valor n
-simplificarProd (Valor n) (Valor 1) = Valor n
+simplificarProd (Valor 0) e         = Valor 0
+simplificarProd e (Valor 0)         = Valor 0
+simplificarProd (Valor 1) e         = e
+simplificarProd e (Valor 1)         = e
 simplificarProd e1 e2               = Prod e1 e2
 
 simplificarNeg :: ExpA -> ExpA
