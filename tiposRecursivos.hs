@@ -91,27 +91,29 @@ alMenosNTesoros :: Int -> Camino -> Bool
 alMenosNTesoros n Fin              = False
 alMenosNTesoros n (Nada cam)       = alMenosNTesoros n cam
 alMenosNTesoros n (Cofre elem cam) =  (cantTesorosPorCofre elem) >= n  || alMenosNTesoros ( n - (cantTesorosPorCofre elem)) cam
+
 --Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si
 --el rango es 3 y 5, indica la cantidad de tesoros que hay entre hacer 3 pasos y hacer 5. Están
 --incluidos tanto 3 como 5 en el resultado
+--Precondición: Los puntos existen.
 cantTesorosEntre :: Int -> Int -> Camino -> Int
 cantTesorosEntre 0 hastaPasos camino =
-    tesorosEntre hastaPasos camino
+    tesorosEnCadaPunto hastaPasos camino
 cantTesorosEntre caminarPasos hastaPasos (Cofre _ resto) =
     cantTesorosEntre (caminarPasos -1) (hastaPasos -1) resto 
 cantTesorosEntre caminarPasos hastaPasos (Nada resto) =
     cantTesorosEntre (caminarPasos -1) (hastaPasos - 1) resto 
 
-tesorosEntre :: Int -> Camino -> Int
-tesorosEntre 0 cam = tesorosEn cam
-tesorosEntre n (Cofre objetos resto) = cantTesorosPorCofre objetos +
-     (tesorosEntre (n-1) resto)
-tesorosEntre n (Nada resto) = (tesorosEntre (n-1) resto)
+tesorosEnCadaPunto :: Int -> Camino -> Int
+tesorosEnCadaPunto 0 cam = tesorosEnEstePunto cam
+tesorosEnCadaPunto n (Cofre objetos resto) = cantTesorosPorCofre objetos +
+     (tesorosEnCadaPunto (n-1) resto)
+tesorosEnCadaPunto n (Nada resto) = (tesorosEnCadaPunto (n-1) resto)
 
-tesorosEn :: Camino -> Int
-tesorosEn  Fin = 0
-tesorosEn  (Cofre objetos resto) = cantTesorosPorCofre objetos
-tesorosEn  (Nada resto) = 0
+tesorosEnEstePunto :: Camino -> Int
+tesorosEnEstePunto  Fin = 0
+tesorosEnEstePunto  (Cofre objetos resto) = cantTesorosPorCofre objetos
+tesorosEnEstePunto  (Nada resto) = 0
 
 --2.1. Árboles binario
 
@@ -310,7 +312,7 @@ caminoA x []= [[x]]
 caminoA x (xs:xss) = (x : xs) : (caminoA x xss)             
 
 
-data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA  
+data ExpA = Valor Int| Sum ExpA ExpA| Prod ExpA ExpA | Neg ExpA   
 --Dada una expresión aritmética devuelve el resultado evaluarla.
 eval :: ExpA -> Int
 eval (Valor n)    = n
@@ -338,8 +340,8 @@ simplificarProd e (Valor 1)         = e
 simplificarProd e1 e2               = Prod e1 e2
 
 simplificarNeg :: ExpA -> ExpA
-simplificarNeg (Neg (Neg x)) = x
-simplificarNeg  e            = e
+simplificarNeg  (Neg x) = x
+simplificarNeg  e       = Neg e
 
 
 
