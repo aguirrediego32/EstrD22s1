@@ -95,20 +95,21 @@ alMenosNTesoros n (Cofre elem cam) =  (cantTesorosPorCofre elem) >= n  || alMeno
 --Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si
 --el rango es 3 y 5, indica la cantidad de tesoros que hay entre hacer 3 pasos y hacer 5. Están
 --incluidos tanto 3 como 5 en el resultado
---Precondición: Los puntos existen.
+--Precondición: Los puntos existen y el primer punto no debe ser mayor al segundo punto.
 cantTesorosEntre :: Int -> Int -> Camino -> Int
+cantTesorosEntre caminarPasos 0 camino = error "el valor primer punto debe ser menor al valor del segundo punto "
 cantTesorosEntre 0 hastaPasos camino =
-    tesorosEnCadaPunto hastaPasos camino
+    tesorosDesdeHastaElPunto hastaPasos camino
 cantTesorosEntre caminarPasos hastaPasos (Cofre _ resto) =
     cantTesorosEntre (caminarPasos -1) (hastaPasos -1) resto 
 cantTesorosEntre caminarPasos hastaPasos (Nada resto) =
     cantTesorosEntre (caminarPasos -1) (hastaPasos - 1) resto 
 
-tesorosEnCadaPunto :: Int -> Camino -> Int
-tesorosEnCadaPunto 0 cam = tesorosEnEstePunto cam
-tesorosEnCadaPunto n (Cofre objetos resto) = cantTesorosPorCofre objetos +
-     (tesorosEnCadaPunto (n-1) resto)
-tesorosEnCadaPunto n (Nada resto) = (tesorosEnCadaPunto (n-1) resto)
+tesorosDesdeHastaElPunto :: Int -> Camino -> Int
+tesorosDesdeHastaElPunto 0 cam = tesorosEnEstePunto cam
+tesorosDesdeHastaElPunto n (Cofre objetos resto) = cantTesorosPorCofre objetos +
+     (tesorosDesdeHastaElPunto (n-1) resto)
+tesorosDesdeHastaElPunto n (Nada resto) = (tesorosDesdeHastaElPunto (n-1) resto)
 
 tesorosEnEstePunto :: Camino -> Int
 tesorosEnEstePunto  Fin = 0
