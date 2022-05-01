@@ -60,11 +60,11 @@ cantCapasPorPizza []     = []
 cantCapasPorPizza (p:ps) = (cantidadDeCapas p, p) : (cantCapasPorPizza ps)
 
 
-data Dir = Izq | Der                deriving Show
-data Objeto = Tesoro | Chatarra     deriving Show
-data Cofre  = Cofre [Objeto]         deriving Show
+data Dir = Izq | Der               
+data Objeto = Tesoro | Chatarra      
+data Cofre  = Cofre [Objeto]         
 data Mapa   = Fin Cofre               
-            | Bifurcacion Cofre Mapa Mapa  deriving Show    
+            | Bifurcacion Cofre Mapa Mapa   
 
 mapa1 :: Mapa
 mapa1 = Fin (Cofre [Tesoro])
@@ -85,6 +85,18 @@ mapa4 = Bifurcacion (Cofre [Tesoro])
                     mapa3
                     mapa3
 
+mapa5 :: Mapa
+mapa5 = Bifurcacion (Cofre[Chatarra])
+                    (Fin(Cofre[Tesoro,Tesoro,Tesoro]))
+                    (Bifurcacion(Cofre[Tesoro,Tesoro])
+                                        (Fin(Cofre[]))
+                                        (Bifurcacion(Cofre[])
+                                                              (Fin(Cofre[Tesoro]))
+                                                              (Fin(Cofre[Tesoro,Tesoro,Tesoro,Tesoro,Tesoro,Tesoro]))))
+mapa6 :: Mapa
+mapa6 = Bifurcacion (Cofre[])
+                    mapa5
+                    (Fin(Cofre[]))                                                              
 --Indica si hay un tesoro en alguna parte del mapa
 hayTesoro :: Mapa -> Bool
 hayTesoro (Fin c)               = tieneTesoro c
@@ -116,18 +128,48 @@ esIzq :: Dir -> Bool
 esIzq Izq = True
 esIzq _   = False
 
+
+heightM :: Mapa -> Int
+heightM (Fin(Cofre cosas)) = 0
+heightM (Bifurcacion (Cofre cosas) mp1 mp2) = 1 + max (heightM mp1) (heightM mp2)
+
+
+--Indica el camino de la rama más larga.
+caminoDeLaRamaMasLarga :: Mapa -> [Dir]
+caminoDeLaRamaMasLarga (Fin (Cofre cosas)) = []
+caminoDeLaRamaMasLarga (Bifurcacion(Cofre cosas) mp1 mp2) = if (heightM mp1) > (heightM mp2)
+                                                               then Izq : caminoDeLaRamaMasLarga mp1
+                                                               else Der: caminoDeLaRamaMasLarga mp2
+
+tesorosPorNivel :: Mapa -> [[Objeto]]
+tesorosPorNivel (Fin (Cofre cosas)) = [cosas]
+tesorosPorNivel (Bifurcacion(Cofre cosas) mp1 mp2) = [cosas] ++ (zipListas(tesorosPorNivel mp1)(tesorosPorNivel mp2))
+
+zipListas :: [[a]] -> [[a]] ->[[a]]
+zipListas [] yss = yss
+zipListas xss [] = xss
+zipListas (xs: xss) (ys:yss) = (xs ++ ys) : (zipListas xss yss)
+
+--Devuelve todos lo caminos en el mapa.
+caminoA :: a -> [[a]] -> [[a]]
+caminoA x []= [[x]]
+caminoA x (xs:xss) = (x : xs) : (caminoA x xss)
+
+todosLosCaminos :: Mapa -> [[Dir]]
+todosLosCaminos (Fin(Cofre cosas)) = []
+todosLosCaminos (Bifurcacion(Cofre(cosas)) mp1 mp2) = (caminoA Izq(todosLosCaminos mp1)) ++ (caminoA Der(todosLosCaminos mp2)) 
 --------------------------------------------------------------------------------------------------------------------------------------
-data Componente = LanzaTorpedos | Motor Int | Almacen [Barril] deriving Show
+data Componente = LanzaTorpedos | Motor Int | Almacen [Barril]  
 
-data Barril = Comida | Oxigeno | Torpedo | Combustible  deriving Show
+data Barril = Comida | Oxigeno | Torpedo | Combustible   
 
-data Sector = S SectorId [Componente] [Tripulante]  deriving Show
+data Sector = S SectorId [Componente] [Tripulante]   
 
 type SectorId = String
 type Tripulante = String
 
-data Tree a = EmptyT | NodeT a (Tree a) (Tree a)  deriving Show
-data Nave = N (Tree Sector)   deriving Show
+data Tree a = EmptyT | NodeT a (Tree a) (Tree a) 
+data Nave = N (Tree Sector) 
 
 
 compAlmacen = Almacen [Comida,Oxigeno,Torpedo]
